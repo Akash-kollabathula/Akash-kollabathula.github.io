@@ -1,10 +1,13 @@
-// Raw unedited photo of Akash Kollabathula
-// Defaults to empty ('') until the user's raw photograph Akashface.jpg is loaded or provided
-export const AKASH_DRIVE_PHOTO = '';
-export const AKASH_THEMED_PHOTO = '';
-export const AKASH_NORMAL_PHOTO = '';
-export const AKASH_CYBER_AVATAR = '';
-export const AKASH_AVATAR_IMAGE = '';
-export const AKASH_STUDIO_PHOTO = '';
-export const AKASH_CYBER_THEMED_PHOTO = '';
+import akashProfileImage from './images/Akashface.png';
+
+// Official portrait of Akash Kollabathula
+export const AKASH_PROFILE_IMAGE = akashProfileImage;
+export const AKASH_DRIVE_PHOTO = akashProfileImage;
+export const AKASH_THEMED_PHOTO = akashProfileImage;
+export const AKASH_NORMAL_PHOTO = akashProfileImage;
+export const AKASH_CYBER_AVATAR = akashProfileImage;
+export const AKASH_AVATAR_IMAGE = akashProfileImage;
+export const AKASH_STUDIO_PHOTO = akashProfileImage;
+export const AKASH_CYBER_THEMED_PHOTO = akashProfileImage;
+
 

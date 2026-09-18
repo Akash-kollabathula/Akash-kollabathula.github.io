@@ -14,7 +14,6 @@ import { terminalAudio } from './utils/soundEffects';
 import { speechVoice } from './utils/speechVoice';
 import { avatarStore } from './utils/avatarStore';
 import { downloadResumePDF } from './utils/pdfGenerator';
-import { GlobalImageDropOverlay } from './components/GlobalImageDropOverlay';
 import { CheckCircle2, Loader2, Keyboard, Terminal as TerminalIcon, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function App() {
@@ -554,9 +553,6 @@ export default function App() {
       className="min-h-screen bg-[#0a0a0a] text-[#00ff41] font-mono relative overflow-x-hidden pointer-events-auto select-auto"
       style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
     >
-      {/* Global Image Drop and Paste Handler */}
-      <GlobalImageDropOverlay />
-
       {/* Optional CRT Scanline Shader Overlay - strictly non-blocking */}
       {scanlinesEnabled && (
         <div

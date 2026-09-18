@@ -1,122 +1,38 @@
+import { AKASH_PROFILE_IMAGE } from '../assets/avatar';
+
 export type AvatarFilterStyle = 'terminal' | 'cyber' | 'natural';
-
-const STORAGE_KEY = 'akash_custom_photo_v2';
-const FILTER_STYLE_KEY = 'akash_avatar_filter_style_v1';
-
-type Listener = () => void;
-const listeners: Set<Listener> = new Set();
-
-function notify() {
-  listeners.forEach((l) => l());
-}
-
-let serverAvatarUrl: string | null = null;
-
-// Check server disk for existing avatar
-if (typeof window !== 'undefined') {
-  fetch('/api/avatar')
-    .then((res) => res.json())
-    .then((data) => {
-      if (data && data.exists && data.url) {
-        serverAvatarUrl = data.url;
-        notify();
-      }
-    })
-    .catch(() => {});
-}
 
 export const avatarStore = {
   getPhotoUrl(): string {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (
-        stored &&
-        stored.trim().length > 0 &&
-        (stored.startsWith('data:image') || stored.startsWith('blob:') || stored.startsWith('/'))
-      ) {
-        return stored;
-      }
-    } catch {
-      // fallback
-    }
-
-    if (serverAvatarUrl) {
-      return serverAvatarUrl;
-    }
-
-    return '';
+    return AKASH_PROFILE_IMAGE;
   },
 
   hasPhoto(): boolean {
-    const url = this.getPhotoUrl();
-    return Boolean(url && url.length > 0);
+    return true;
   },
 
   getFilterStyle(): AvatarFilterStyle {
-    return 'natural'; // Keep 100% natural, exact unedited image
+    return 'natural';
   },
 
-  setFilterStyle(_style: AvatarFilterStyle) {
-    // Keep unedited real face
-    notify();
-  },
+  setFilterStyle(_style: AvatarFilterStyle) {},
 
   cycleFilterStyle(): AvatarFilterStyle {
     return 'natural';
   },
 
-  setCustomPhoto(dataUrl: string) {
-    try {
-      localStorage.setItem(STORAGE_KEY, dataUrl);
-      serverAvatarUrl = dataUrl;
-      notify();
+  setCustomPhoto(_dataUrl: string) {},
 
-      // Persist to server on disk
-      if (dataUrl.startsWith('data:image')) {
-        fetch('/api/upload-avatar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: dataUrl }),
-        })
-          .then((r) => r.json())
-          .then((d) => {
-            if (d && d.url) {
-              serverAvatarUrl = d.url;
-            }
-          })
-          .catch((err) => console.warn('Background avatar disk sync warning:', err));
-      }
-    } catch (err) {
-      console.error('Failed to save custom photo to localStorage', err);
-    }
-  },
-
-  resetPhoto() {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-      serverAvatarUrl = null;
-      notify();
-    } catch {
-      // ignore
-    }
-  },
+  resetPhoto() {},
 
   hasCustomPhoto(): boolean {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && stored.trim().length > 0) return true;
-      return Boolean(serverAvatarUrl);
-    } catch {
-      return false;
-    }
+    return true;
   },
 
-  subscribe(listener: Listener) {
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
+  subscribe(_listener: () => void) {
+    return () => {};
   },
 };
+
 
 

@@ -32,12 +32,15 @@ import {
   Smartphone,
   Server,
   Filter,
-  Send
+  Send,
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { portfolioData } from '../data/portfolioData';
 import { TerminalTheme } from '../types';
 import { terminalAudio } from '../utils/soundEffects';
 import { AkashCyberAvatar } from './AkashCyberAvatar';
+import { sendQuickMessage, TARGET_EMAIL } from '../utils/mailService';
 import { InteractiveTestRunner } from './InteractiveTestRunner';
 
 interface GuiPortfolioProps {
@@ -61,8 +64,12 @@ export const GuiPortfolio: React.FC<GuiPortfolioProps> = ({
   const [activeSkillTab, setActiveSkillTab] = useState<string>('all');
   const [copiedEmail, setCopiedEmail] = useState<boolean>(false);
   const [copiedPhone, setCopiedPhone] = useState<boolean>(false);
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [sendFeedback, setSendFeedback] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [showMobileNav, setShowMobileNav] = useState(false);
 
   const handleCopyEmail = () => {
@@ -81,12 +88,58 @@ export const GuiPortfolio: React.FC<GuiPortfolioProps> = ({
     setTimeout(() => setCopiedPhone(false), 2000);
   };
 
-  const handleSendContact = (e: React.FormEvent) => {
+  const handleSendContact = async (e: React.FormEvent) => {
     e.preventDefault();
-    terminalAudio.playSuccessChime();
-    const mailto = `mailto:${portfolioData.contacts.email}?subject=${encodeURIComponent(
+    if (!contactEmail.trim() || !contactMessage.trim()) {
+      setSendFeedback({
+        type: 'error',
+        text: 'Please provide both your email address and a message.',
+      });
+      return;
+    }
+
+    setIsSendingMessage(true);
+    setSendFeedback(null);
+    terminalAudio.playButtonClick();
+
+    try {
+      const res = await sendQuickMessage({
+        name: contactName,
+        email: contactEmail,
+        subject: contactSubject,
+        message: contactMessage,
+      });
+
+      if (res.success) {
+        terminalAudio.playSuccessChime();
+        setSendFeedback({
+          type: 'success',
+          text: res.message || `Message dispatched successfully to ${TARGET_EMAIL}!`,
+        });
+        setContactMessage('');
+        setContactSubject('');
+      } else {
+        setSendFeedback({
+          type: 'error',
+          text: res.message || 'Error submitting message. You can also use direct mail.',
+        });
+      }
+    } catch (err: any) {
+      setSendFeedback({
+        type: 'error',
+        text: err?.message || 'Error connecting to mail server.',
+      });
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  const handleDirectMailto = () => {
+    const mailto = `mailto:${TARGET_EMAIL}?subject=${encodeURIComponent(
       contactSubject || 'SDET Role Opportunity / Inquiries'
-    )}&body=${encodeURIComponent(contactMessage || 'Hi Akash, I came across your SDET portfolio...')}`;
+    )}&body=${encodeURIComponent(
+      `Name: ${contactName || 'Recruiter'}\nEmail: ${contactEmail || 'N/A'}\n\n${contactMessage || 'Hi Akash, I came across your SDET portfolio...'}`
+    )}`;
     window.location.href = mailto;
   };
 
@@ -803,49 +856,138 @@ export const GuiPortfolio: React.FC<GuiPortfolioProps> = ({
               </div>
             </div>
 
-            {/* Quick Email Generator Form */}
-            <div className="lg:col-span-7 bg-[#0b0f17] border border-[#1e2838] p-6 rounded-xl space-y-4">
-              <h3 className="text-sm font-bold text-white font-mono flex items-center gap-2">
-                <Send className="w-4 h-4 text-cyan-400" />
-                <span>Send Quick Message to Akash:</span>
-              </h3>
+            {/* Quick Email Generator Form with Free API Integration */}
+            <div className="lg:col-span-7 bg-[#0b0f17] border border-[#1e2838] p-6 rounded-xl space-y-4 shadow-xl">
+              <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                <h3 className="text-sm font-bold text-white font-mono flex items-center gap-2">
+                  <Send className="w-4 h-4 text-cyan-400" />
+                  <span>Quick Message to Akash:</span>
+                </h3>
+                <span className="text-[10px] text-emerald-400 font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30">
+                  Direct API Delivery
+                </span>
+              </div>
 
-              <form onSubmit={handleSendContact} className="space-y-4 text-xs font-mono">
+              {sendFeedback && (
+                <div
+                  className={`p-3 rounded-lg text-xs font-mono flex items-start gap-2 ${
+                    sendFeedback.type === 'success'
+                      ? 'bg-emerald-950/80 border border-emerald-500/60 text-emerald-300'
+                      : 'bg-red-950/80 border border-red-500/60 text-red-300'
+                  }`}
+                >
+                  {sendFeedback.type === 'success' ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p>{sendFeedback.text}</p>
+                    {sendFeedback.type === 'error' && (
+                      <button
+                        type="button"
+                        onClick={handleDirectMailto}
+                        className="mt-1.5 text-[11px] underline text-cyan-300 hover:text-white cursor-pointer font-bold"
+                      >
+                        Click here to launch email client directly →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSendContact} className="space-y-3.5 text-xs font-mono">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="contact-name" className="block text-gray-400 mb-1">
+                      Your Name:
+                    </label>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                      placeholder="e.g. Sarah Jenkins (Tech Recruiter)"
+                      className="w-full bg-[#121620] border border-gray-800 focus:border-cyan-500 rounded-lg px-3.5 py-2.5 text-white placeholder-gray-600 outline-none transition"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="contact-email" className="block text-gray-400 mb-1">
+                      Your Email <span className="text-cyan-400">*</span>:
+                    </label>
+                    <input
+                      id="contact-email"
+                      type="email"
+                      required
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      placeholder="name@company.com"
+                      className="w-full bg-[#121620] border border-gray-800 focus:border-cyan-500 rounded-lg px-3.5 py-2.5 text-white placeholder-gray-600 outline-none transition"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label htmlFor="contact-subject" className="block text-gray-400 mb-1">Subject / Role:</label>
+                  <label htmlFor="contact-subject" className="block text-gray-400 mb-1">
+                    Subject / Role:
+                  </label>
                   <input
                     id="contact-subject"
                     type="text"
                     value={contactSubject}
                     onChange={(e) => setContactSubject(e.target.value)}
-                    placeholder="e.g. SDET / Automation Engineer Opening at..."
-                    className="w-full bg-[#121620] border border-gray-800 focus:border-emerald-500 rounded-lg px-3.5 py-2.5 text-white placeholder-gray-600 outline-none transition"
+                    placeholder="e.g. Senior SDET / Playwright Opening"
+                    className="w-full bg-[#121620] border border-gray-800 focus:border-cyan-500 rounded-lg px-3.5 py-2.5 text-white placeholder-gray-600 outline-none transition"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="contact-message" className="block text-gray-400 mb-1">Message / Project Details:</label>
+                  <label htmlFor="contact-message" className="block text-gray-400 mb-1">
+                    Message <span className="text-cyan-400">*</span>:
+                  </label>
                   <textarea
                     id="contact-message"
+                    required
                     rows={4}
                     value={contactMessage}
                     onChange={(e) => setContactMessage(e.target.value)}
-                    placeholder="Hi Akash, we are looking for a Playwright SDET engineer to lead our test automation initiatives..."
-                    className="w-full bg-[#121620] border border-gray-800 focus:border-emerald-500 rounded-lg px-3.5 py-2.5 text-white placeholder-gray-600 outline-none transition resize-none"
+                    placeholder="Hi Akash, we are impressed by your Playwright test framework and SDET background at HCL Technologies..."
+                    className="w-full bg-[#121620] border border-gray-800 focus:border-cyan-500 rounded-lg px-3.5 py-2.5 text-white placeholder-gray-600 outline-none transition resize-none"
                   />
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-[11px] text-gray-500">
-                    Opens default mail client directly to Akash
-                  </span>
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs flex items-center gap-2 transition cursor-pointer active:scale-95 shadow-lg shadow-cyan-500/20"
-                  >
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Send Message</span>
-                  </button>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                  <div className="text-[11px] text-gray-400 flex items-center gap-1.5">
+                    <span>Delivers to:</span>
+                    <span className="text-cyan-300 font-bold">{TARGET_EMAIL}</span>
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleDirectMailto}
+                      className="px-3 py-2.5 rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 text-xs transition cursor-pointer"
+                      title="Open in your default mail app"
+                    >
+                      Open in Mail App
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSendingMessage}
+                      className="flex-1 sm:flex-none px-5 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer active:scale-95 shadow-lg shadow-cyan-500/20"
+                    >
+                      {isSendingMessage ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Sending API...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Send Quick Message</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

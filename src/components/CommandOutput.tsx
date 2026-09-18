@@ -628,7 +628,7 @@ export const CommandOutput: React.FC<CommandOutputProps> = ({
     );
   }
 
-  // 6b. PHOTO / AVATAR COMMAND: Real profile image upload & display
+  // 6b. PHOTO / AVATAR COMMAND: Akash Kollabathula Official Portrait
   if (cmdBase === 'photo' || cmdBase === 'avatar') {
     return (
       <div className="space-y-4 mb-4 select-text font-mono">
@@ -640,67 +640,31 @@ export const CommandOutput: React.FC<CommandOutputProps> = ({
               <div className="border-b border-[#00ff41]/30 pb-2">
                 <h4 className="text-sm font-bold text-white flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#00ff41] animate-pulse" />
-                  Akash's Exact Real Profile Picture
+                  Akash Kollabathula • Official Profile
                 </h4>
                 <p className="text-[11px] text-gray-400 mt-0.5">
-                  100% photographic fidelity of your actual face — zero AI alterations or facial modifications.
+                  SDET & Playwright Automation Engineer at HCL Technologies
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2 items-center">
-                <label className="px-4 py-2 bg-emerald-950/80 border border-[#00ff41] text-[#00ff41] hover:bg-emerald-900/90 rounded text-xs font-bold cursor-pointer transition shadow-[0_0_12px_rgba(0,255,65,0.25)] flex items-center gap-2">
-                  <Upload className="w-4 h-4" />
-                  <span>Choose Image File</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files.length > 0) {
-                        const file = e.target.files[0];
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          if (ev.target?.result) {
-                            avatarStore.setCustomPhoto(ev.target.result as string);
-                            terminalAudio.playSuccessChime();
-                          }
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                      if (e.target) e.target.value = '';
-                    }}
-                  />
-                </label>
-
-                {avatarStore.hasCustomPhoto() && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      avatarStore.resetPhoto();
-                      terminalAudio.playThemeSwitch();
-                    }}
-                    className="px-3 py-2 bg-red-950/60 border border-red-500/60 text-red-300 hover:bg-red-900/60 rounded text-xs font-mono transition cursor-pointer"
-                  >
-                    Reset Photo
-                  </button>
-                )}
-              </div>
-
-              <div className="text-[11px] text-gray-300 bg-[#07110a] border border-[#00ff41]/20 p-2.5 rounded space-y-1">
-                <div className="flex items-center gap-1.5 text-[#00ff41] font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                  <span>How to load your photo:</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div className="p-2 bg-[#09110d] border border-emerald-500/20 rounded">
+                  <span className="text-gray-400">Title:</span> <span className="text-white font-semibold">Software Development Engineer in Test</span>
                 </div>
-                <div className="text-gray-400 pl-3 space-y-0.5 text-[10.5px]">
-                  <div>• Click the <strong>Choose Image File</strong> button above or click the avatar itself.</div>
-                  <div>• Or drag and drop <code className="text-cyan-300">ChatGPT Image Sep 18, 2026, 10_04_10 PM.png</code> anywhere onto the browser window.</div>
-                  <div>• Or copy the image and press <kbd className="px-1 py-0.5 bg-black rounded border border-gray-700 text-white">Ctrl+V</kbd> anywhere.</div>
+                <div className="p-2 bg-[#09110d] border border-emerald-500/20 rounded">
+                  <span className="text-gray-400">Experience:</span> <span className="text-[#00ff41] font-semibold">3 Years (Dec 2023 – Present)</span>
+                </div>
+                <div className="p-2 bg-[#09110d] border border-emerald-500/20 rounded">
+                  <span className="text-gray-400">Core Specialty:</span> <span className="text-cyan-300 font-semibold">Playwright + TypeScript Automation</span>
+                </div>
+                <div className="p-2 bg-[#09110d] border border-emerald-500/20 rounded">
+                  <span className="text-gray-400">Email:</span> <span className="text-emerald-300 font-semibold">kollabathula.akash.test@gmail.com</span>
                 </div>
               </div>
 
               <div className="text-[10px] text-gray-400 flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-gray-800">
-                <span>Current Status: <span className="text-[#00ff41] font-bold">{avatarStore.hasCustomPhoto() ? 'Custom Exact Image Loaded' : 'Awaiting Image File'}</span></span>
-                <span className="text-gray-500 font-mono">Format: JPG / PNG (Unedited)</span>
+                <span>System Status: <span className="text-[#00ff41] font-bold">Verified Portrait Loaded</span></span>
+                <span className="text-gray-500 font-mono">Profile Image: Locked</span>
               </div>
             </div>
           </div>

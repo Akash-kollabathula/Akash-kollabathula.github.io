@@ -77,6 +77,47 @@ async function startServer() {
     return res.json({ exists: false, url: null });
   });
 
+  // Free Email API endpoint for quick messages to Akash
+  app.post('/api/send-email', async (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body;
+      if (!email || !message) {
+        return res.status(400).json({ error: 'Email and message are required' });
+      }
+
+      const targetEmail = 'kollabathula.akash.test@gmail.com';
+      const formSubmitRes = await fetch(`https://formsubmit.co/ajax/${targetEmail}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Referer: (req.headers.referer as string) || 'https://kollabathula-akash.github.io/',
+        },
+        body: JSON.stringify({
+          name: name || 'Portfolio Visitor',
+          email,
+          _subject: subject || `Quick Message from ${name || 'Recruiter'} (${email})`,
+          message,
+          _template: 'table',
+          _captcha: 'false',
+        }),
+      });
+
+      const data = await formSubmitRes.json().catch(() => ({ success: true }));
+      return res.json({
+        success: true,
+        message: 'Message delivered to kollabathula.akash.test@gmail.com',
+        details: data,
+      });
+    } catch (err: any) {
+      console.error('Error dispatching mail:', err);
+      return res.status(500).json({
+        error: 'Failed to dispatch email',
+        message: err.message,
+      });
+    }
+  });
+
   // Gemini AI Chat endpoint
   app.post('/api/gemini/chat', async (req, res) => {
     try {
